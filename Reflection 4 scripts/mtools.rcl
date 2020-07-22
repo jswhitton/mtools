@@ -1,0 +1,596 @@
+; reflections script for mtools - invoked with a parameter to say which
+; tool to run. All in one file so that we can have shared subroutines,
+; text strings, etc without having lots of discrete script files.
+; All strings defined in one place, to simplify translation - add a
+; subroutine :german, say, and change the 'gosub english' to 'gosub german'.
+; It will also be necessary to change the default value of the filetype
+; variable in :init.
+; The buttons have english names [YES, NO, CANCEL, etc] but they appear
+; on the screen in the windows language. ie there's no need to translate
+; YES, NO, CANCEL etc in the source.
+;
+; RCL doesn't allow arbitrary strings to be passed as parameters
+; but because all our strings go in variables, we _can_ pass them, via
+; an extra level of indirection. ie we pass value v1=23 to access string
+; in variable 23 - we access it as v$23 in the subroutine.
+;
+; There seems to be a bug in reflections - we can pass an optional
+; default string to the acceptbox routine, but if we supply an
+; an empty string, it sometimes puts up garbage. I cant quite tell
+; if it is related to the indirection (as above), ie if v23="" and
+; v1=23, if we do  default v$1, we often get rubbish which goes away
+; if we use v23 directly. I'm not sure of the mechanism - if I was
+; implementing RCL, I would make one pass through the command, processing
+; the $'s, and only then parse the string. But it could be an unitialised
+; variable or something, and the stack contains something particular if
+; we have used v$1. Anyway, 'default' is best avoided if the default string
+; might be empty.
+;
+; The code to handle each mtool is very similar - they use subroutines
+; 'required' to fetch required parameters, and 'optional' to fetch 
+; optional parameters. Then they build the command in v9, and, if
+; appropriate, call 'output' to prompt for an output file. If no
+; vax file is specified, the output will go to the screen, and
+; the program offers to (attempt to) log the session to a local file.
+; The 'output' subroutine appends the /out=... to the command in v9
+; if necessary.
+; file types are handled separately - there is no tidy way of implementing
+; lookup tables, but I have done my best !
+
+; temporarily preserve the tool to be invoked in v9, since v1 might
+; might get used between now and then. (must be v<10, since we need to use $)
+let v9=v1
+
+; we need rather more variables than the default 10 !
+set variables 80
+;
+; v0 -> v6 - scratch variables / parameters for subroutines
+; - subroutines return values in v0, v1, ...
+; v7 -> v9 - things that need to be used with $ (since only $0 -> $9 work)
+;   v9 = build up command to be run
+;
+; v10 = title for dialogue boxes (=current mtool)
+
+let v10=v1
+
+; we'd like to remember previous values of parameters, to be provided
+; as defaults. However, we do not have a monopoly on use of these
+; reflection variables. Use v11 as a marker - if it has value "MTOOLS"
+; on entry, the chances are that the other variables are still intact.
+; Basically, these are global variables for the possible mtools params,
+; and we try to preserve them across invocations, using v11="MTOOLS" as
+; a flag so that we have some confidence that the variables are not changed.
+; many other scripts will use only 0 to 9, and we dont much care about them.
+; with hindsight, perhaps we should have used variables >100, but ...
+; v11="MTOOLS"
+; v12=nodename (disk volume)
+; v13=filename
+; v14=filetype (numeric)
+; v15=filetype (string)
+; v16=host file (putasc)
+; v17=node number (cfs)
+; v18=output file
+; v19=lower limit
+; v20=upper limit
+; v21=time
+; v22=report number or date (length 12 => date, else report number)
+
+if v11 <> "MTOOLS"
+  ; probably first time through, or someone else has been using these variables
+  gosub init
+  ; set up the strings from v30 onwards, in an appropriate language
+  ; this also means we can pass strings as parameters to subroutines,
+  ; via an extra level of indirection
+  gosub english
+endif
+
+; v25 = are we logging to pc file ?
+; only some tools have output which can be usefully logged, so set it off now,
+; then switch it on in subroutine 'output'
+let v25=0
+
+
+; the main work starts here.
+
+if v9 = ""
+  ; report error about needing a parameter
+  messagebox v0 prompt v30 title "mtools" icon stop
+  stop
+endif
+
+; handle the tool-specific part - puts command string into v9
+gosub $9
+
+; now offer user the chance to modify the command string...
+gosub modify
+
+; ... before invoking it
+gosub go
+
+stop
+
+
+; ---------------
+;      mtime
+; ---------------
+
+:mtime
+  ; 48 asks for time, 21 is variable that time lives in, and 12 is maximum length
+  gosub optional 48 21 12
+  if length(v21) <> 0 and length(v21) <> 12
+    goto mtime
+  endif
+  let v9 = "mtime " & v21
+  return
+
+
+
+; ---------------
+;      mcfs
+; ---------------
+
+:mcfs
+  ; prompt, reprompt, variable number, max length
+  ; node number
+  gosub require 31 32 17 3
+  let v9 = "mcfs/address=" & v17
+  ; append /output to v9 if necessary
+  gosub output
+  return
+
+
+; ---------------
+;      mgetmsg
+; ---------------
+
+:mgetmsg
+
+  ; lower and upper
+  gosub require 33 34 19 3
+  gosub require 35 36 20 3
+  let v9 = "mgetmsg/upper=" & v19 & "/upper=" & v20
+  gosub output
+  return
+
+
+; ---------------
+;      mgetasc
+; ---------------
+
+:mgetasc
+  ; nodename, filename and filetype
+  gosub require 37 38 12 10
+  gosub require 39 40 13 9
+  gosub type
+  let v9 = "mgetasc/node=" & v12 & "/file=" & v13 & "/type=" & v14
+  gosub output
+  return
+
+; ---------------
+;      mputasc
+; ---------------
+
+:mputasc
+  ; nodename, filename, filetype, hostfile
+  gosub require 37 38 12 10
+  gosub require 39 40 13 9
+  gosub type
+  gosub require 44 45 16 80
+  let v9 = "mputasc /node=" & v12 & "/file=" & v13 & "/type=" & v14 & " " & v16
+  return
+
+
+; ---------------
+;      mgetrep
+; ---------------
+
+:mgetrep
+  ; nodename, filename, report number/date
+  gosub require 37 38 12 10
+  gosub require 39 40 13 9
+  let v9 = "mgetrep/node=" & v12 & "/file=" & v13
+  gosub require 46 47 22 12
+  if length(v22)=12
+    ; it's a date
+    let v9="$9/date=$0"
+  else
+    ; it must be a report number
+    let v9="$9/report=$0"
+  endif
+  gosub output
+  return
+
+; ------------------------------------------
+; ------------------------------------------
+; ------------------------------------------
+; -------------             ----------------
+; -----------    utilities     -------------
+; -------------             ----------------
+; ------------------------------------------
+; ------------------------------------------
+
+
+; -----------
+;    init
+; ----------
+; we'd like to preserve values across runs, but we dont own
+; all these variables - init is called if it seems to be first time
+; through or if someone else has been here (a flag in v11)
+; this sets up all the defaults for the mtools parameters
+; but will need to change v15 if language is changed.
+
+:init
+  let v11="MTOOLS"
+  let v12=""
+  let v13=""
+  let v14="0"
+  let v15="RBL"
+  let v16=""
+  let v17=""
+  let v18=""
+  let v19="1"
+  let v20="255"
+  let v21=""
+  let v22=""
+  return
+
+
+; ----------------
+;     required
+; ----------------
+
+; pick up a required mtool parameter via dialogue box.
+; parameters passed are variable _numbers_ - access via an extra
+; level of indirection (p79 of RCL manual)
+; v1 = variable number holding prompt string
+; v2 = variable number holding reprompt string (on error)
+; v3 = variable number of variable which holds default for this parameter
+; v4 = max length (this one is passed directly)
+
+:require
+  ; seems to be a bug in reflections ??? - if I say default v$3, and
+  ; v$3 is empty, I get a garbage string in the input field ???
+  let v5="QUESTION"
+  :req1
+  if v$3=""
+    acceptbox v0 prompt v$1 title v10 limit v4 icon $5
+  else
+    acceptbox v0 prompt v$1 title v10 default v$3 limit v4 icon $5
+  endif
+
+  if v0=""
+    ; a value is required - reprompt and go again
+    let v1=v2
+    let v5="CAUTION"
+    goto req1
+  endif
+  ; update the default variable
+  let v$3 = v0
+  return
+
+; ------------
+;   optional
+; ------------
+
+; similarly for an optional parameter
+; parameters passed are variable _numbers_ - access via an extra
+; level of indirection (p79 of RCL manual)
+; v1 = variable number holding prompt string
+; v2 = variable number of variable which holds default for this parameter
+; v3 = max length (this one is passed directly)
+
+:optional
+  if v$2=""
+    acceptbox v0 prompt v$1 title v10 limit v3
+  else
+    acceptbox v0 prompt v$1 title v10 default v$2 limit v3
+  endif
+  let v$2 = v0
+  return
+
+
+; ---------------
+;   type2num
+; ----------------
+
+; get a filetype string, and return the corresponding filetype number
+; v1=string to convert
+; a rather crude way of implementing an array  - v0=element number, then
+; v$0 is string[v0]
+:type2num
+  ; filetype table starts at v60
+  let v0=60
+  :t2n1
+  if v1=v$0
+    let v0=v0-60
+    return
+  endif
+  let v0=v0+1
+  if v0<74
+    goto t2n1
+  endif
+  ; get here => no such type
+  let v0=-1
+  return
+
+
+; ------------
+;   num2type
+; ------------
+
+; and back the other way (slightly easier !)
+:num2type
+  let v1=v1+60
+  let v0=v$1
+  return
+
+
+; ------------
+;    type
+; ------------
+
+; for tools which have output, we can send the output to a file on
+; the host, or if it is sent to the screen, we can log the output
+; to a local file
+; no parameters, since there is no choice in global variables used.
+
+; prompt for filetype in string format
+:type
+  let v6="QUESTION"
+  :t1
+  ; BUG IN REFLECTIONS - empty default variable => garbage
+  if v15=""
+    acceptbox v5 prompt v41 title v10 icon $6
+  else
+    acceptbox v5 prompt v41 title v10 default v15 icon $6
+  endif
+  let v6="CAUTION"
+  if v5=""
+    goto t1
+  endif
+  gosub type2num $5
+  if v0 = -1
+    goto t1
+  endif
+  ; okay, v5=string and v0=number
+  let v15=v5
+  let v14=v0
+  return
+
+
+; -----------
+;   output
+; -----------
+
+; for tools which have output, we can send the output to a file on
+; the host, or if it is sent to the screen, we can log the output
+; to a local file
+; no parameters, since there is no choice in global variables used.
+
+:output
+  if v18=""
+    continue
+    acceptbox v0 prompt v49 title v10
+    let v1=error-code
+  else
+    continue
+    acceptbox v0 prompt v49 title v10 default v18
+    let v1=error-code
+  endif
+
+  if v1=164
+    ; they pressed cancel
+    let v18=""
+    let v0=""
+    close printer
+    open {}
+    let v25=1
+  else
+    if v1<>0
+      goto error
+    endif
+    ; they pressed OK
+    let v18=v0
+    if v0<>""
+      let v9 = "$9/output=$0"
+    endif
+  endif
+  return
+
+
+; -----------
+;   modify
+; -----------
+;
+; offer user the chance to modify v9 before invoking it
+; throws up YES-NO-CANCEL box. Selecting NO brings them to the
+; edit-command box.
+
+:modify
+  messagebox v0 prompt v56 title v10 buttons YES-NO-CANCEL
+  if v0="YES"
+    return
+  endif
+  if v0="CANCEL"
+    stop
+  endif
+
+; they must have said no
+; trap cancel button - we interpret it to mean 'cancel changes made'
+; ie go back to 'are you ready' box. Can be sure that v9 <> "", so
+; we dont have to worry about the reflections bug.
+; dont put any comments or blanks between these next three lines !
+
+  continue
+  acceptbox v0 prompt v57 title v10 default v9
+  let v1=error-code
+
+  if v1=164
+    ; they pressed cancel - v9 has not been changed
+    goto modify
+  endif
+
+  if v1 <> 0
+    ; something else went wrong - put up a stop box
+    goto error
+  endif
+
+; accept their modified string
+  let v9=v0
+  return
+
+
+; ---------
+;    go
+; ---------
+
+; invoke v9 as a host command. Switch on logging for the duration of the
+; command if required. (Not a supported feature, but seems to mostly work.
+; can be broken if, for example, the DCL prompt is set to something
+; stupid
+
+:go
+  if v25<>0
+    ; they want to log output to a local file.
+    ; this complicates things, as we need to watch for
+    ; prompt so we can stop logging !
+    ; figure out what the prompt is
+    ; we ought to send a return then wait for a new prompt
+    ; to be issued, but lets chance it and assume that the
+    ; last line on screen contains just the prompt
+    ; But if current column is 0, we'd better ask for
+    ; a new prompt !
+    if SCOLUMN=0
+      transmit "^M"
+      wait 0:0:1
+    endif
+
+    ; capture what's on the current line and assume it is
+    ; the prompt
+    let v0 = screen(SROW,0,SROW,SCOLUMN)
+
+    ; We did the OPEN {} earlier (in subroutine 'output') so
+    ; we should be able to just start logging.
+    log
+    transmit "$9^M"
+    ; use hold so that, even if we get the prompt wrong,
+    ; the user can still type commands to the terminal,
+    ; even if they cant use reflection commands (I think)
+    ; If we guessed the prompt wrong, log file will still be open
+    ; at end of command - it is up to user to notice the 'close file'
+    ; icon on the terminal window.
+    ; if they press ^Y in the terminal window, a prompt
+    ; will be issued, and that will stop the log.
+    ; (if the continue, of course, it wont be logged)
+    hold for "$0"
+    log off
+    close disk
+  else
+    ; just send the request and end the script
+    transmit "$9^M"
+  endif
+
+return
+
+
+
+; ---------
+;  error
+; ---------
+
+; if an unexpected error occurs while CONTINUE is active, come here
+; with v1=error code. (It's the best we can do !)
+
+:error
+  messagebox v0 prompt v59&v1 title v10 buttons ok icon stop
+  stop
+
+
+; ----------
+;   english
+; ----------
+
+; set up the strings for english - add a routine
+; :german say, and call that instead, if so desired.
+
+:english
+let v30="mtools.rcl requires tool as parameter"
+let v31="Peerway node number"
+let v32="Peerway node number must be specified"
+let v33="Lower limit"
+let v34="Lower limit must be specified"
+let v35="Upper limit"
+let v36="Upper limit must be specified"
+let v37="Nodename (disk volume name)"
+let v38="Node name must be specified"
+let v39="RS3 Filename"
+let v40="RS3 Filename must be specified"
+let v41="Filetype"
+let v42="Filetype (0 -> 14) must be specified"
+let v43="Filetype must be an even number between 0 and 14"
+let v44="Host file to be sent"
+let v45="Must specify a host file to download"
+let v46="Report number or date"
+let v47="Report number or date must be specified"
+let v48="Time (blank or in form YYMMDDHHMMSS)"
+let v49="Output file (blank->screen, CANCEL->log to pc file)"
+let v50="Log output to local pc file ?"
+
+let v56="Are you ready to invoke the command ?"
+let v57="Please make changes - cancel ignores changes"
+let v58="Last chance to make any changes / cancel"
+let v59="Error code "
+
+; if these are translated, the default value for v15 or whatever it
+; is will have to be changed.
+
+let v60="RBL"
+let v61="$RBL"
+let v62="OPTABLE"
+let v63="$OPTABLE"
+let v64="UNITTABLE"
+let v65="$UNITTABLE"
+let v66="MATTABLE"
+let v67="$MATTABLE"
+let v68="MASTERREC"
+let v69="$MASTERREC"
+let v70="CONTROLREC"
+let v71="$CONTROLREC"
+let v72="WORKREC"
+let v73="$WORKREC"
+return
+
+; -----------
+;    help
+; -----------
+
+; display some brief help on the terminal screen.
+
+:help
+display "^M^J^J"
+display "These notes descibe the Reflections interface to the Mtools.^M^J"
+display "They do not describe the Mtools themselves. Type HELP MTOOLS^M^J"
+display "at the DCL prompt for further details.^M^J"
+display "Click on any of the buttons to start the Reflections Mtools script^M^J"
+display "for the appropriate tool. (The VAX must be at a DCL prompt.)^M^J"
+display "You will be prompted by a series of dialogue boxes for entering the^M^J"
+display "various operating parameters. Some are required, and some are optional.^M^J^J"
+
+display "For the tools which output information to the terminal, the script^M^J"
+display "prompts for an optional VAX filename for the output. If you click CANCEL^M^J"
+display "the script will attempt to log the output to a local (pc) file instead.^M^J"
+display "While this is not a supported feature, it may provide useful functionality.^M^J"
+display "Note that the DCL prompt, command, and any warnings or broadcasts issued^M^J"
+display "during the command will also be logged. It is preferred to specify a VAX file^M^J"
+display "and to access that file from the pc via pathworks. If at the end of the^M^J"
+display "command, the status line shows 'holding' or 'close disk', the script has^M^J"
+display "failed to detect command completion (based on issue of DCL prompt).^M^J^J"
+
+display "Having received all the parameters, the script will ask if you are^M^J"
+display "ready to run the command. Answering NO will bring up a window^M^J"
+display "containing the command, which may be edited before it is run. CANCEL^M^J"
+display "returns to the previous prompt with the command string unchanged^M^J"
+
+; since logging the output requires a prompt on display, send a return
+transmit "^M"
+stop
