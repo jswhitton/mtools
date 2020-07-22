@@ -1,0 +1,117 @@
+Installation notes for Mtools
+-----------------------------
+
+The VMS files are supplied as a VMS backup saveset MTOOLS.BCK
+They can be unpacked using the standard VMS backup utility:
+  $ BACKUP MTOOLS.BCK/SAVE []/LOG
+
+- note that it is necessary to ensure that the file is a fixed-record
+file with record size 32256, as required by backup. If the file is
+to be installed via pc running pathworks, use something like
+  c:\> NFT COPY/IMAGE/FIX/MRS:32256 mtools.bck node::mtools.bck
+
+If it is being transferred using kermit in binary mode, it will be
+necessary to modify the record size:
+  $ set file mtools.bck /attribute=(fix,mrs:32256)
+
+
+The Mtools suite can be installed either system-wide by the
+system manager, but can be setup on a per-process basis without
+the need for any privileges.
+
+------------------------------------------------------------------
+
+1) The following logical names are required. They can be defined
+  per-process, or system wide   (  $ DEFINE [/SYSTEM] )
+
+ MTL_CMDS  is a logical pointing at the directory containing the
+           executables
+
+ MTL_MID   is the full filename (including path) for a file in
+           which the mtools maintain the current SCI message ID
+           between runs. Authorised users of the mtools require
+           read/write access to this file. (The tools ought to work
+           without a file to save the message id, but this use is
+           not supported.)
+
+ MTL_PORT  is the host port to which the SCI is attached. The host
+           driver should be configured using SET TERM [/PERMANENT]
+           as below...
+
+           The most important attributes are
+           /NOECHO   - so that SCI replies are not bounced back as requests
+           /EIGHT    - required if 8-bit characters are used in RS3 files
+           /NOESCAPE - to inhibit validation of escape sequences
+           /NOBROAD  - to prevent VMS sending broadcast messages
+           /TTSYNC/HOSTSYNC  - if SCI is configured for flow control
+           /PASSALL /PASTHRU - to prevent VMS from formatting messages.
+           /ALTYPEAHD- to increase the read-ahead buffer
+
+            If these are not the /permanent settings, it is
+           necessary to ALLOC the terminal then SET TERM as appropriate
+
+
+Terminal: _TTA3:      Device_Type: Unknown       Owner: USER
+
+Terminal Characteristics:
+   Passall            No Echo            Type_ahead         No Escape
+   Hostsync           TTsync             Lowercase          No Tab
+   No Wrap            Hardcopy           No Remote          Eightbit
+   No Broadcast       No Readsync        No Form            Fulldup
+   No Modem           No Local_echo      No Autobaud        No Hangup
+   No Brdcstmbx       No DMA             Altypeahd          Set_speed
+   No Commsync        No Line Editing    Overstrike editing No Fallback
+   No Dialup          No Secure server   No Disconnect      Pasthru
+   No Syspassword     No SIXEL Graphics  No Soft Characters No Printer Port
+   Numeric Keypad     No ANSI_CRT        No Regis           No Block_mode
+   No Advanced_video  No Edit_mode       No DEC_CRT         No DEC_CRT2
+   No DEC_CRT3        No DEC_CRT4        No DEC_CRT5        No Ansi_Color
+   VMS Style Input
+
+
+2) Optional logical names or symbols. These can be defined system-wide
+ and/or over-ridden per-process
+
+  MTL_STFR  is the string used to start a reply from the SCI. The
+           string must not contain any control characters. The
+           default is "("
+
+  MTL_ENDFR  is the string used to end replies from the SCI. The string
+            should not contain any control characters, though the SCI
+            must be configured to also send a control character as part
+            of the reply. The default is ")"
+
+  MTL_CHKSM  is "Y" or "N", depending on whether all communication
+           with the SCI is to be verified using checksums. The default
+           is "Y"
+
+
+
+3) The commands must be defined as verbs, using $ SET COMMAND MTOOLS
+  This can be done per process, or system-wide using
+  $ SET COMMAND/TABLE=SYS$COMMON:[SYSLIB]DCLTABLES.EXE -
+     /OUTPUT=SYS$COMMON:[SYSLIB]DCLTABLES.EXE MTOOLS
+
+
+4) (Optional)  The online help text can be added to a system-wide
+   or local VMS help dictionary. It can be added to the main system
+  help with
+
+$ LIBRARY SYS$HELP:HELPLIB/HELP MTOOLS
+
+ or to a local help library, which can be added to the help search
+ path by defining HLP$LIBRARY_n in the usual way.
+
+
+
+
+5)  (Optional) Because of VMS/DCL limitations, the verbs must be
+  unique to 4 characters, so that the names MGETASC etc cannot
+  be used as verbs. They are defined instead as the verbs MGASC,
+  MPASC, etc, and if required, symbols can be set up as aliases:
+
+ $ mgetasc :== mgasc
+ $ mputasc :== mpasc
+
+ etc - this should be done in sylogin.com, login.com, or perhaps
+ in mtl_cmds:setup.com, depending on local preferences.

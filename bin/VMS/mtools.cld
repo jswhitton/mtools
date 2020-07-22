@@ -1,0 +1,190 @@
+! CDU definitions for MTOOLS commands
+! This file is read by SET COMMAND MTOOLS, and teaches DCL about
+! the commandline syntax for the various tools.
+!
+!{{{  notes
+! drd
+!
+!
+! might want to specify verbose qualifier as 'BATCH', so that it
+! on by default in batch jobs, and off by default for interactive jobs
+!
+! slight snag - commands must be unique to first 4 characters !
+! ie MGETASC is indistinguishable from MGETREP
+! for the moment, define verb as MGASC, etc
+! Can make aliases SYNONYM GETASC, for example
+! It can also be done as MGET/ASCII - define MGET as a verb, then
+! use SYNTAX to invoke a different image depending on presence of
+! qualifier /ASCII or /RAW or /REPORT or /MESSAGE etc
+! Either way, can make a DCL symbol mgetasc as an alias for the
+! actual DCL name
+!
+! Another snag - DCL prompts for required parameters, even if
+! /HELP is given. I think I can get round it with DEFINE SYNTAX.
+! an alternate syntax, invoked by MPUTASC/HELP, which
+! doesn't prompt for a parameter
+! we dont define an image, so it will use the original verb.
+! ie we can use one alternate syntax for all verbs.
+! The /help doesn't seem get through to the image - presumably
+! it is processed internally by DCL, so we
+! have to invent _another_ /help qualifier, which is by default on.
+!}}}
+
+!{{{  HELP SYNTAX (to avoid DCL prompting for required params given /HELP)
+DEFINE SYNTAX HELP
+  NOPARAMETERS
+  NODISALLOWS  ! disable any disallow processing in the verb
+  QUALIFIER HELP,NONNEGATABLE,DEFAULT ! this is the one image actually sees.
+                                      ! it is on by default and cannot be
+                                      ! switched off
+!}}}
+
+!{{{  mtime
+DEFINE VERB mtime
+  IMAGE MTL_CMDS:mtime
+  QUALIFIER VERBOSE, NEGATABLE
+  QUALIFIER HELP,    SYNTAX=HELP
+  PARAMETER P1
+!}}}
+!{{{  mgmsg
+DEFINE VERB mgmsg
+  IMAGE MTL_CMDS:mgetmsg
+  QUALIFIER HELP,    SYNTAX=HELP
+  QUALIFIER LOWER, NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+  QUALIFIER UPPER, NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+! optional ones
+  QUALIFIER VERBOSE,NEGATABLE
+  QUALIFIER OUTPUT, NONNEGATABLE,VALUE(REQUIRED,TYPE=$FILE)
+!}}}
+!{{{  mcfs
+DEFINE VERB mcfs
+  IMAGE MTL_CMDS:mcfs
+  QUALIFIER ADDRESS, NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+! optional ones
+  QUALIFIER HELP,  SYNTAX=HELP
+  QUALIFIER VERBOSE,NEGATABLE
+  QUALIFIER OUTPUT, NONNEGATABLE,VALUE(REQUIRED,TYPE=$FILE)
+  DISALLOW (NOT ADDRESS)
+!}}}
+!{{{  mgasc
+DEFINE VERB mgasc
+  IMAGE MTL_CMDS:mgetasc
+  QUALIFIER ADDRESS, NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+  QUALIFIER BUS,     NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+  QUALIFIER FILENAME,NONNEGATABLE,VALUE(REQUIRED)
+  QUALIFIER NODENAME,NONNEGATABLE,VALUE(REQUIRED)
+  QUALIFIER TYPE,    NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+! optional ones
+  QUALIFIER HELP,    SYNTAX=HELP
+  QUALIFIER VERBOSE,NEGATABLE
+  QUALIFIER OUTPUT, NONNEGATABLE,VALUE(REQUIRED,TYPE=$FILE)
+! check that all required elements are given
+! DCL appears to check in reverse order ?
+  DISALLOW (NOT TYPE) OR (NOT NODENAME) OR (NOT FILENAME)
+  DISALLOW ADDRESS AND NOT BUS
+!}}}
+!{{{  mpasc
+DEFINE VERB mpasc
+  IMAGE MTL_CMDS:mputasc
+  QUALIFIER ADDRESS, NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+  QUALIFIER BUS,     NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+  QUALIFIER FILENAME,NONNEGATABLE,VALUE(REQUIRED)
+  QUALIFIER NODENAME,NONNEGATABLE,VALUE(REQUIRED)
+  QUALIFIER TYPE,    NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+! need to define an alternate syntax for /HELP, so that it
+! doesn't prompt for the parameter
+  QUALIFIER HELP,    SYNTAX=HELP
+  QUALIFIER VERBOSE,NEGATABLE
+!param
+  PARAMETER P1,      VALUE(REQUIRED), prompt "File"
+! check that all required elements are given
+! DCL appears to check in reverse order ?
+  DISALLOW (NOT TYPE) OR (NOT NODENAME) OR (NOT FILENAME)
+  DISALLOW ADDRESS AND NOT BUS
+!}}}
+!{{{  mgrep
+DEFINE VERB mgrep
+  IMAGE MTL_CMDS:mgetrep
+  QUALIFIER ADDRESS, NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+  QUALIFIER BUS,     NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+  QUALIFIER FILENAME,NONNEGATABLE,VALUE(REQUIRED)
+  QUALIFIER NODENAME,NONNEGATABLE,VALUE(REQUIRED)
+  QUALIFIER REPORT,  NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+  QUALIFIER DATE,    NONNEGATABLE,VALUE(REQUIRED)
+! optional ones
+  QUALIFIER HELP,    SYNTAX=HELP
+  QUALIFIER VERBOSE,NEGATABLE
+  QUALIFIER OUTPUT, NONNEGATABLE,VALUE(REQUIRED,TYPE=$FILE)
+! check that all required elements are given
+! DCL appears to check/report in reverse order ?
+  DISALLOW (NOT NODENAME) OR (NOT FILENAME)
+! if address is given, bus must also be given
+! documentation implies both are required, but this seems not to
+! be the case
+  DISALLOW ADDRESS AND NOT BUS
+! we are allowed to omit either report or date...
+  DISALLOW (NOT REPORT) AND (NOT DATE)
+! ... but cannot specify both
+  DISALLOW (REPORT AND DATE)
+!}}}
+!{{{  mconfig
+DEFINE VERB MCONFIG
+  IMAGE MTL_CMDS:MCONFIG
+  QUALIFIER LOWER, NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+  QUALIFIER UPPER, NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+! optional ones
+  QUALIFIER HELP,  SYNTAX=HELP
+  QUALIFIER VERBOSE,NEGATABLE
+  QUALIFIER OUTPUT, NONNEGATABLE,VALUE(REQUIRED,TYPE=$FILE)
+!}}}
+!{{{  mgraw
+DEFINE VERB mgraw
+  IMAGE MTL_CMDS:mgetraw
+  QUALIFIER ADDRESS, NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+  QUALIFIER BUS,     NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+  QUALIFIER FILENAME,NONNEGATABLE,VALUE(REQUIRED)
+  QUALIFIER NODENAME,NONNEGATABLE,VALUE(REQUIRED)
+  QUALIFIER CONFIG,  NONNEGATABLE,VALUE(REQUIRED)
+! optional ones
+  QUALIFIER HELP,   SYNTAX=HELP
+  QUALIFIER VERBOSE,NEGATABLE
+  QUALIFIER OUTPUT, NONNEGATABLE,VALUE(REQUIRED,TYPE=$FILE)
+! check that all required elements are given
+! DCL appears to check in reverse order ?
+  DISALLOW (NOT NODENAME) OR (NOT FILENAME) OR (NOT CONFIG)
+! we are allowed to omit either nodename or address - bus defaults to 1
+  DISALLOW ADDRESS AND NOT BUS
+!}}}
+!{{{  mpraw
+DEFINE VERB mpraw
+  IMAGE MTL_CMDS:mputraw
+  QUALIFIER ADDRESS, NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+  QUALIFIER BUS,     NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+  QUALIFIER FILENAME,NONNEGATABLE,VALUE(REQUIRED)
+  QUALIFIER NODENAME,NONNEGATABLE,VALUE(REQUIRED)
+  PARAMETER P1,     VALUE(REQUIRED),prompt="Raw File"
+! optional ones
+  QUALIFIER HELP,    SYNTAX=HELP
+  QUALIFIER VERBOSE,NEGATABLE
+! check that all required elements are given
+! DCL appears to check in reverse order ?
+  DISALLOW (NOT NODENAME) OR (NOT FILENAME)
+  DISALLOW ADDRESS AND NOT BUS
+!}}}
+!{{{  mgctrl
+DEFINE VERB mgctrl
+  IMAGE MTL_CMDS:mgetctrl
+  QUALIFIER LOWER, NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+  QUALIFIER UPPER, NONNEGATABLE,VALUE(REQUIRED,TYPE=$NUMBER)
+  QUALIFIER VERBOSE, NEGATABLE
+  QUALIFIER OUTPUT, NONNEGATABLE,VALUE(REQUIRED,TYPE=$FILE)
+  QUALIFIER HELP,    SYNTAX=HELP
+!}}}
+!{{{  mpctrl
+DEFINE VERB mpctrl
+  IMAGE MTL_CMDS:mputctrl
+  PARAMETER P1,     VALUE(REQUIRED),prompt="Raw File"
+! optional ones
+  QUALIFIER HELP,    SYNTAX=HELP
+  QUALIFIER VERBOSE,NEGATABLE
+!}}}

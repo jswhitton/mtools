@@ -1,0 +1,395 @@
+!{{{  mtools
+1 MTOOLS
+
+  The Mtools compromise a suite of utilities for exchanging information
+ between VMS host and Rosemount System 3 via SCI interface.
+
+  The 6 tools provide a consistent interface, so that the qualifiers
+ and logical names can be described here. See the help entry for each
+ tool, or run the tool with the /HELP qualifier to see the details of
+ the qualifers used with that tool.
+2 Tools
+ The tools provided are
+
+   mtime   : set the time on the RS3 system
+   mcfs    : read controlfile status from RS3 node
+   mgetmsg : read message pairs from the RS3 system
+   mgetrep : read report from an RS3 node
+   mgetasc : upload ascii files from the RS3
+   mputasc : download ascii files to the RS3
+2 Logicals
+  The tools look for several logical names and/or symbols for
+ configuration. Some are required, and some are optional, overriding
+ compiled-in defaults.
+
+3 required
+ MTL_CMDS  is a logical pointing at the directory containing the
+           executables
+ MTL_MID   is the full filename (including path) for a file in
+           which the mtools maintain the current SCI message ID
+           between runs. Authorised users of the mtools require
+           read/write access to this file
+ MTL_PORT  is the host port to which the SCI is attached. The host
+           driver should be configured using SET TERM [/PERMANENT]
+           as described in the installation notes.
+3 Optional
+MTL_STFR  contains the start-frame string configured by the console.
+           If it is not defined, "(" is used. The SCI should not
+           be configured to use any control characters in frame start.
+ MTL_ENDFR is the end-frame string, excluding one (required) non-printable
+           character. The default is ")". The SCI must be configured to
+           also send one control character, typically 0A, as part of the
+           end-frame, though the current implementation does not need to
+           know which particular non-printable character is being used.
+ MTL_CHKSM should be a string starting with "y" or "Y" if checksumming
+           is to enabled. If no variable is set, checksumming is ON
+           by default.
+2 Qualifiers
+  Qualifiers are specified using standard DCL syntax. The qualifier
+ names are unique in the first character, so that only the first
+ letter need be specified. Most of the qualifiers require a value.
+ DCL will convert all strings to upper-case, so if it is necessary
+ to specify lower-case, "double quotes" should be used. Quotes are
+ also required if a string includes one or more spaces.
+3  /address
+
+    The peerway number of the node to be accessed. For commands which
+   also accept a disk volume (/nodename), the address can frequently
+   be omitted if the nodename is specified.
+
+3  /bus
+
+    The drive number of the disk to be accessed. If the disk volume
+   is specified (/nodename) the bus can typically be omitted.
+
+3  /date
+
+    The date in RS3 syntax  (YYMMDDHHMMSS).
+
+3  /file
+
+    The name of the RS3 file to be accessed
+
+3  /help
+
+    A brief summary of the command
+
+3  /node
+
+    The name of the disk.
+
+3  /output
+
+    Redirects the output from screen to a file on the VMS host.
+   This is optional, with default SYS$OUTPUT (usually the screen
+   for an interactive session, or the batch log file for a batch
+   job).
+
+3  /report
+
+    A report number.
+
+3  /type
+
+    An ASCII folder file type, as follows
+
+     0 = Script in ASCII format    1 = Script file parse errors
+     2 = ASCII Batch Ops. Table    3 = Batch Ops. Table parse errors
+     4 = ASCII Batch Unit Table    5 = Batch Unit Table parse errors
+     6 = ASCII Batch Mat. Table    7 = Batch Mat. Table parse errors
+     8 = ASCII Master Recipe       9 = Master recipe parse errors
+    10 = ASCII Control Recipe     11 = Control Recipe parse errors
+    12 = ASCII working recipe     13 = Working Recipe parse errors
+3  /verbose
+
+    Operate the tool in verbose mode. This is a boolean qualifier,
+   and is negatable - the default is /noverbose.
+
+3  /lower
+
+   The lower limit of a range of values.
+
+3  /upper
+
+    The upper limit of a range of values.
+!}}}
+!
+! Do these as separate entries so that HELP MGETASC from DCL
+! will find entry
+!
+!{{{  mgetasc
+1 MGETASC
+ MGETASC uploads or "gets" ascii files from the console ASCII
+folder. This could be RBL, ABC or any other file type which exists
+in an ASCII folder. This is capable of uploading all file types
+found in the ASCII folder.
+
+ MGETASC accepts the following qualifiers
+2 /Help
+  A brief help screen
+
+2 /Address
+  Target node address in decimal
+
+2 /Bus
+  SCSI bus address in decimal
+
+2 /Nodename
+  Name of the node (disk) to be accessed. If the nodename is specified,
+ the address and bus may be omitted.
+
+2 /File
+  RS3 target filename as text
+
+2 /Type
+  Type of file to be uploaded, as follows
+
+     0 = Script in ASCII format    1 = Script file parse errors
+     2 = ASCII Batch Ops. Table    3 = Batch Ops. Table parse errors
+     4 = ASCII Batch Unit Table    5 = Batch Unit Table parse errors
+     6 = ASCII Batch Mat. Table    7 = Batch Mat. Table parse errors
+     8 = ASCII Master Recipe       9 = Master recipe parse errors
+    10 = ASCII Control Recipe     11 = Control Recipe parse errors
+    12 = ASCII working recipe     13 = Working Recipe parse errors
+
+2 /Output
+  Host file to receive uploaded file (optional). Default is SYS$OUTPUT.
+
+2 /Verbose
+  Operate verbosely. Default is /NOVERBOSE.
+!}}}
+!{{{  mputasc
+1 MPUTASC
+ MPUTASC "puts" ASCII files down to a console's ASCII folder.
+This is the complement of the MGETASC function.
+
+ MPUTASC accepts the following parameter and qualifiers
+
+2 Parameter
+
+  MPUTASC requires one parameter - the name of the VMS (host) file
+ to be transmitted to the RS3 system.
+
+2 /Help
+  Display a brief help screen.
+
+2 /Address
+  Target node address in decimal. If /nodename is specified, it
+ is not necessary to supply the address.
+
+2 /Bus
+  SCSI bus address in decimal. If /nodename is specified, it
+ is not necessary to supply the bus.
+
+2 /Nodename
+  Name of the node (disk) to be accessed. If /nodename is specified,
+ it is not necessary to supply the address or bus.
+
+2 /Filename
+  Destination filename on the target RS3 disk.
+
+2 /Type
+  Type of file to be uploaded, as follows
+
+     0 = Script in ASCII format    1 = Script file parse errors
+     2 = ASCII Batch Ops. Table    3 = Batch Ops. Table parse errors
+     4 = ASCII Batch Unit Table    5 = Batch Unit Table parse errors
+     6 = ASCII Batch Mat. Table    7 = Batch Mat. Table parse errors
+     8 = ASCII Master Recipe       9 = Master recipe parse errors
+    10 = ASCII Control Recipe     11 = Control Recipe parse errors
+    12 = ASCII working recipe     13 = Working Recipe parse errors
+
+2 /Verbose
+  Operate verbosely. Default is /NOVERBOSE
+!}}}
+!{{{  mgetmsg
+1 MGETMSG
+ MGETMSG uploads message pairs from an SCI node. Message pairs from
+ 1 to 100 are the standard message pairs, while messages from
+ 101 to 255 are mapped to user-message pairs 1 to 155.
+2 /Lower
+  The lower limit of the range of messages required.
+2 /Upper
+  The upper limit of the range of messages required.
+2 /Output
+  An optional host file to which the messages are written. Default
+ is SYS$OUTPUT
+2 /Verbose
+  Operate verbosely. Default is /NOVERBOSE.
+!}}}
+!{{{  mgetrep
+1 MGETREP
+ MGETREP Uploads a report file from an RS3 system to the host (VMS)
+ system via the SCI.
+2 /Help
+  A brief help screen.
+
+2 /Address
+  Target node address in decimal. If /nodename is specified, it
+ is not necessary to supply the address.
+
+2 /Bus
+  SCSI bus address in decimal. If /nodename is specified, it
+ is not necessary to supply the bus.
+
+2 /Nodename
+  Name of the node (disk) to be accessed. If /nodename is specified,
+ it is not necessary to supply the address or bus.
+
+2 /Filename
+ Filename of the report directory on the RS3 system.
+
+2 /Report
+  The number of the report to be accessed. /Report and /Date are
+ mutually exclusive.
+
+2 /Date
+  A time and date, in the form YYMMDDHHMMSS, close to that of the
+ required report. /Date and /Report are mutually exclusive.
+
+2 /Output
+  Optional host filename for the output. The default is SYS$OUTPUT.
+
+2 /Verbose
+  Operate verbosely. Default is /NOVERBOSE.
+!}}}
+!{{{  mcfs
+1 MCFS
+ MCFS reads ControlFile Status information from a control file node.
+The output information is similar to that displayed by the
+Control File Status screen on the RS3 console, though not all the
+information is made available by the SCI.
+2 /Address
+ Peerway node number of the control file to be accessed.
+2 /Help
+ Displays a brief usage screen.
+2 /Output
+ Optional host file to which the information should be sent. The
+ default is SYS$OUTPUT.
+2 /Verbose.
+ Operate verbosely. Default is /NOVERBOSE.
+!}}}
+!{{{  mtime
+1 MTIME
+ MTIME sets the RS3 system time and date.
+2 Parameter
+ MTIME takes one optional parameter, which is the date in the
+form YYMMDDHHMMSS. For example, 940417071500 represents 7:15am
+on April 17th, 1994.
+
+ If no parameter is given, the default is the current time on the
+host system.
+2 /Help
+  Displays a brief help page.
+2 /verbose
+  Operate verbosely. Default is /NOVERBOSE
+!}}}
+!{{{  mconfig
+1 MCONFIG
+  Mconfig explores a peerway, looking for controller nodes.
+It outputs a configuration file which can be edited using any
+ASCII editor, and then fed into MGETRAW as a configuration file.
+2 /lower
+  Specifies the lower limit of the nodes to explore. Default is 1
+2 /upper
+  Specifies the upper limit of the nodes to explore. Default is 32.
+2 /help
+  Give a brief help screen.
+2 /verbose
+  Operate verbosely. Default is /NOVERBOSE
+2 /output
+  Specifies a file to which the configuration should be sent.
+
+!}}}
+!{{{  mgetctrl
+1 MGETCTRL
+ Uploads the current contents of the controllers on a peerway,
+outputting the information in a form which allows it to be sent
+back. The output should not be modified using a text editor.
+MGETCTRL automatically explores the peerway for controllers to
+dump.
+2 /lower
+  Specifies the lower limit of the nodes to explore. Default is 1
+2 /upper
+  Specifies the upper limit of the nodes to explore. Default is 32.
+2 /help
+  Give a brief help screen.
+2 /verbose
+  Operate verbosely. Default is /NOVERBOSE
+2 /output
+  Specifies a file to which the configuration should be sent.
+!}}}
+!{{{  mputctrl
+1 MPUTCTRL
+ Downloads to the controllers in a peerway the dump which was
+previously uploaded to host using MGETCTRL or MGETRAW.
+2 Parameter
+  The dumpfile made by MGETCTRL or MGETRAW, to be sent to the controllers.
+2 /help
+  Give a brief help screen.
+2 /verbose
+  Operate verbosely. Default is /NOVERBOSE
+!}}}
+!{{{  mgetraw
+1 MGETRAW
+ Similar to MGETCTRL, but reads the controller contents from a
+RS3 disk file in the config folder. Unlike MGETCTRL, this command
+cannot automatically determine the controller types in the dump
+file, so must be told what controllers to look for, via a configuration
+file. The configuration file is not required for a subsequent download,
+since all the required information is stored in the dump file.
+2 config_format
+ The configuration file has a simple layout, with lines
+of the form
+  <node> <controller id's>
+where <node> is the peerway node number, and the id's are the
+characters '-' for no controller, 'P' for PLC controller, and
+'M' for MPC or MPC2 controller. For example
+
+ 15  M--MPM--
+
+says that node 15 has MPC controllers in slots A,D and F, and
+a PLC controller in slot E.
+
+MCONFIG can be used to explore a peerway and generate a suitable
+configuration file, which can be edited using a text editor if
+necessary.
+2 /Address
+  Target node address in decimal
+2 /Bus
+  SCSI bus address in decimal
+2 /Nodename
+  Name of the node (disk) to be accessed. If the nodename is specified,
+ the address and bus may be omitted.
+2 /File
+  RS3 target filename as text
+2 /config
+  Specifies the name of the configuration file.
+2 /help
+  Give a brief help screen.
+2 /verbose
+  Operate verbosely. Default is /NOVERBOSE
+2 /output
+  Specifies a file to which the dump should be sent.
+!}}}
+!{{{  mputraw
+1 MPUTCTRL
+ Similar to MPUTCTRL, but sends the controller dump to an
+RS3 disk file in the config folder.
+2 Parameter
+  The name of the host file which contains the dump made previously
+ by mgetctrl or mgetraw
+2 /Address
+  Target node address in decimal
+2 /Bus
+  SCSI bus address in decimal
+2 /Nodename
+  Name of the node (disk) to be accessed. If the nodename is specified,
+ the address and bus may be omitted.
+2 /File
+  RS3 target filename as text
+2 /help
+  Give a brief help screen.
+2 /verbose
+  Operate verbosely. Default is /NOVERBOSE
+!}}}
