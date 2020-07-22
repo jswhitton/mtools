@@ -1,0 +1,4 @@
+! it's best to give all libraries a HELP entry
+1 HELP
+ This help library is for the MTOOLS suite. See the system library
+for help on the HELP command.

@@ -1,0 +1,135 @@
+MESSAGES                        Message definitions          29-MAY-1995 15:00:29  VAX-11 Message V04-00                   Page   1
+                                                             29-MAY-1995 14:46:42  $DISK2:[RHODES.MTOOLS]MESSAGES.MSG;40       
+ 
+                                      1 ! message file for the Mtools suite of programs
+                                      2 ! This file is compiled directly on VMS systems, using the message
+                                      3 ! facility. On other systems, other files are generated automatically
+                                      4 ! from this file. THIS IS THE DEFINITIVE FILE FOR ERROR MESSAGES.
+                                      5 ! The format should bre reasonably evident. Each message is accessed
+                                      6 ! from the program using a symbol MTL__<msg-id>, eg MTL__ESTABLISHED
+                                      7 !
+                                      8 
+                                      9 .TITLE    Mtools error and informational messages
+                                     10 .IDENT    'Version 1.00'
+                                     11 
+                                     12 ! the number should be a unique 11-bit number on VMS system (bit 12 must be 1)
+                                     13 ! the prefix is what is used to make symbol names visible in the program
+                                     14 
+                         00000801    15 .FACILITY MTOOLS, 1 /prefix=MTL__
+                                     16 
+                                     17 
+                                     18 ! choose warning for the SCI messages. No particular reason, but
+                                     19 ! it makes the bottom 3 bits 0.
+                                     20 ! each message is valid for 8 codes, but the message utility creates
+                                     21 ! the variables (global values) with a particular severity.
+                                     22 ! we'll override the severity when we deliver the message
+                                     23 
+                                     24 .SEVERITY WARNING
+                                     25 
+                                     26 ! tie the SCI errors to particular numbers (remember bottom three
+                                     27 ! bits are severity)
+                                     28 
+                                     29 .base 0
+                         08018000    30 SCI000 <Successful SCI transaction>
+                         08018008    31 SCI001 <Unknown Message type>
+                         08018010    32 SCI002 <Message Length incorrect>
+                         08018018    33 SCI003 <Generic SCI error>
+                         08018020    34 SCI004 <Host disconnected>
+                         08018028    35 SCI005 <Bad Password>
+                         08018030    36 SCI006 <Message no longer in debug queue>
+                         08018038    37 SCI007 <>
+                         08018040    38 SCI008 <request too long>
+                         08018048    39 SCI009 <reply too long>
+                         08018050    40 SCI010 <No such tag>
+                         08018058    41 SCI011 <No such peerway>
+                         08018060    42 SCI012 <No such node>
+                         08018068    43 SCI013 <No such volume>
+                         08018070    44 SCI014 <No such node/drive>
+                         08018078    45 SCI015 <No such file>
+                         08018080    46 SCI016 <No such controller card>
+                         08018088    47 SCI017 <No such block/link>
+                         08018090    48 SCI018 <Node not a ControlFile>
+                         08018098    49 SCI019 <>
+                         080180A0    50 SCI020 <Disk read/write error>
+                         080180A8    51 SCI021 <Global SCI write disabled>
+                         080180B0    52 SCI022 <SCI write disabled for this block>
+                         080180B8    53 SCI023 <Block mode incorrect>
+                         080180C0    54 SCI024 <Value outside limits>
+                         080180C8    55 SCI025 <Invalid configuration to write>
+                         080180D0    56 SCI026 <Too many Set Time messages>
+MTOOLS                          error and informational mess 29-MAY-1995 15:00:29  VAX-11 Message V04-00                   Page   2
+                                                             29-MAY-1995 14:46:42  $DISK2:[RHODES.MTOOLS]MESSAGES.MSG;40       
+ 
+                                     57 .base 30
+                         080180F0    58 SCI030 <SCI table full>
+                         080180F8    59 SCI031 <SCI table address already in use>
+                         08018100    60 SCI032 <SCI not synchronised with host>
+                         08018108    61 SCI033 <A write has been attempted while polling disabled>
+                         08018110    62 SCI034 <The SCI table contains another entry for this block variable...>
+                                     63 .base 40
+                         08018140    64 SCI040 <Raw block transfer in progress>
+                         08018148    65 SCI041 <Checksum bad on raw data write>
+                                     66 .base 51
+                         08018198    67 SCI051 <The reply message may not have status information for all writes>
+                                     68 .base 60
+                         080181E0    69 SCI060 <Cannot change message format in Asynchronous Terminator mode>
+                                     70 .base 70
+                         08018230    71 SCI070 <No transfers available and no transfers have timed out>
+                         08018238    72 SCI071 <Transfer not active. Transfer timed out>
+                         08018240    73 SCI072 <Unable to find a report that meets the request message criteria>
+                         08018248    74 SCI073 <Report generation conflict>
+                         08018250    75 SCI074 <File transfer message not allowed for this folder and file type>
+                         08018258    76 SCI075 <Unknown error occurred>
+                                     77 
+                                     78 
+                                     79 ! and the Mtools messages - any numbers will do
+                                     80 
+                                     81 .SEVERITY SUCCESS
+                         08018261    82   SUCCESS   <Successful completion>
+                                     83 
+                                     84 .SEVERITY INFORMATIONAL  ! for /verbose
+                         0801826B    85   ESTABLISHED   <Established connection to the SCI>
+                         08018273    86   CLOSED        <Closed connection to SCI>
+                         0801827B    87   TIMEOUT       <Timeout while awaiting SCI reply>
+                         08018283    88   BADCRC        <CRC error on message from SCI>
+                         0801828B    89   BADFRAME      <Framing error on message from SCI>
+                         08018293    90   NOID          <Reply from SCI with no message id>
+                         0801829B    91   WRONGID       <Reply from SCI with incorrect id>
+                         080182A3    92   NOSTATUS      <Reply from SCI with no status field>
+                         080182AB    93   CREATEID      <Created SCI ID file>
+                                     94 
+                                     95 .SEVERITY WARN
+                         080182B0    96   NOIDFILE      <No SCI message ID file>
+                         080182B8    97   BADIDFILE     <No SCI ID in file>
+                         080182C0    98   CANTCREATEID  <Cant create SCI ID file>
+                                     99 
+                                    100 .SEVERITY FATAL
+                                    101 ! config or options
+                         080182CC   102   BADNUMBER       <Expected a number>
+                         080182D4   103   OUTOFRANGE      <Qualifier value out of range>
+                         080182DC   104   TOOLONG         <Qualifier string value too long>
+                         080182E4   105   EXCLUSIVEOPT    <Qualifier repeated or mutually exclusive options specified>
+                         080182EC   106   MISSINGOPT      <Not all required qualifiers specified>
+                         080182F4   107   NOVALUE         <Qualifier does not take a value>
+                         080182FC   108   NEEDVALUE       <Qualifier requires a value>
+                         08018304   109   BADBAUD         <Unsupported BAUD rate>
+                                    110 ! comms errors
+                         0801830C   111   NOCOMMS         <Cannot establish communications with the SCI>
+                         08018314   112   TOOMANYRETRIES  <Too many retries for SCI request>
+                         0801831C   113   OUTOFSTORE      <Out of memory>
+MTOOLS                          error and informational mess 29-MAY-1995 15:00:29  VAX-11 Message V04-00                   Page   3
+                                                             29-MAY-1995 14:46:42  $DISK2:[RHODES.MTOOLS]MESSAGES.MSG;40       
+ 
+                         08018324   114   CANTOPENOUT     <Cannot open output file>
+                         0801832C   115   CANTOPENIN      <Cannot open input file>
+                         08018334   116   NOTEVEN         <Hexstring of odd length>
+                                    117 ! errors from the mtools applications
+                         0801833C   118   BADOFFSET       <Offset indicates non-contiguous data>
+                         08018344   119   BADHEX          <Received invalid hex digit in reply>
+                         0801834C   120   FILECHANGED     <File has changed during upload or download>
+                         08018354   121   GARBAGE         <Unparsable reply from SCI>
+                                    122 .END
+
+There were 0 errors, 0 warnings, and 0 informational messages issued.
+MESSAGE/LIST MESSAGES
+

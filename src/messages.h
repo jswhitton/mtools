@@ -1,0 +1,145 @@
+/* messages.h - part of mtools
+ * generated automatically from messages.msg by msg2h.awk
+ */
+
+#if defined(VMS) && defined(VMS_MSG)
+GLOBALVALUEREF(int, MTL__SCI000);
+GLOBALVALUEREF(int, MTL__SCI001);
+GLOBALVALUEREF(int, MTL__SCI002);
+GLOBALVALUEREF(int, MTL__SCI003);
+GLOBALVALUEREF(int, MTL__SCI004);
+GLOBALVALUEREF(int, MTL__SCI005);
+GLOBALVALUEREF(int, MTL__SCI006);
+GLOBALVALUEREF(int, MTL__SCI007);
+GLOBALVALUEREF(int, MTL__SCI008);
+GLOBALVALUEREF(int, MTL__SCI009);
+GLOBALVALUEREF(int, MTL__SCI010);
+GLOBALVALUEREF(int, MTL__SCI011);
+GLOBALVALUEREF(int, MTL__SCI012);
+GLOBALVALUEREF(int, MTL__SCI013);
+GLOBALVALUEREF(int, MTL__SCI014);
+GLOBALVALUEREF(int, MTL__SCI015);
+GLOBALVALUEREF(int, MTL__SCI016);
+GLOBALVALUEREF(int, MTL__SCI017);
+GLOBALVALUEREF(int, MTL__SCI018);
+GLOBALVALUEREF(int, MTL__SCI019);
+GLOBALVALUEREF(int, MTL__SCI020);
+GLOBALVALUEREF(int, MTL__SCI021);
+GLOBALVALUEREF(int, MTL__SCI022);
+GLOBALVALUEREF(int, MTL__SCI023);
+GLOBALVALUEREF(int, MTL__SCI024);
+GLOBALVALUEREF(int, MTL__SCI025);
+GLOBALVALUEREF(int, MTL__SCI026);
+GLOBALVALUEREF(int, MTL__SCI030);
+GLOBALVALUEREF(int, MTL__SCI031);
+GLOBALVALUEREF(int, MTL__SCI032);
+GLOBALVALUEREF(int, MTL__SCI033);
+GLOBALVALUEREF(int, MTL__SCI034);
+GLOBALVALUEREF(int, MTL__SCI040);
+GLOBALVALUEREF(int, MTL__SCI041);
+GLOBALVALUEREF(int, MTL__SCI051);
+GLOBALVALUEREF(int, MTL__SCI060);
+GLOBALVALUEREF(int, MTL__SCI070);
+GLOBALVALUEREF(int, MTL__SCI071);
+GLOBALVALUEREF(int, MTL__SCI072);
+GLOBALVALUEREF(int, MTL__SCI073);
+GLOBALVALUEREF(int, MTL__SCI074);
+GLOBALVALUEREF(int, MTL__SCI075);
+GLOBALVALUEREF(int, MTL__SCI100);
+GLOBALVALUEREF(int, MTL__SCI101);
+GLOBALVALUEREF(int, MTL__SCI102);
+GLOBALVALUEREF(int, MTL__SCI103);
+GLOBALVALUEREF(int, MTL__SCI104);
+GLOBALVALUEREF(int, MTL__SCI105);
+GLOBALVALUEREF(int, MTL__SCI106);
+GLOBALVALUEREF(int, MTL__SCI107);
+GLOBALVALUEREF(int, MTL__SCI108);
+GLOBALVALUEREF(int, MTL__SCI109);
+GLOBALVALUEREF(int, MTL__SCI110);
+GLOBALVALUEREF(int, MTL__SCI111);
+GLOBALVALUEREF(int, MTL__SCI112);
+GLOBALVALUEREF(int, MTL__SCI113);
+GLOBALVALUEREF(int, MTL__SCI114);
+GLOBALVALUEREF(int, MTL__SCI115);
+GLOBALVALUEREF(int, MTL__SUCCESS);
+GLOBALVALUEREF(int, MTL__ESTABLISHED);
+GLOBALVALUEREF(int, MTL__CLOSED);
+GLOBALVALUEREF(int, MTL__TIMEOUT);
+GLOBALVALUEREF(int, MTL__BADCRC);
+GLOBALVALUEREF(int, MTL__BADFRAME);
+GLOBALVALUEREF(int, MTL__NOID);
+GLOBALVALUEREF(int, MTL__WRONGID);
+GLOBALVALUEREF(int, MTL__NOSTATUS);
+GLOBALVALUEREF(int, MTL__CREATEID);
+GLOBALVALUEREF(int, MTL__NOIDFILE);
+GLOBALVALUEREF(int, MTL__BADIDFILE);
+GLOBALVALUEREF(int, MTL__CANTCREATEID);
+GLOBALVALUEREF(int, MTL__TOOSHORT);
+GLOBALVALUEREF(int, MTL__BADCONTROL);
+GLOBALVALUEREF(int, MTL__BADNUMBER);
+GLOBALVALUEREF(int, MTL__OUTOFRANGE);
+GLOBALVALUEREF(int, MTL__TOOLONG);
+GLOBALVALUEREF(int, MTL__EXCLUSIVEOPT);
+GLOBALVALUEREF(int, MTL__MISSINGOPT);
+GLOBALVALUEREF(int, MTL__NOVALUE);
+GLOBALVALUEREF(int, MTL__NEEDVALUE);
+GLOBALVALUEREF(int, MTL__PARAMTOOLONG);
+GLOBALVALUEREF(int, MTL__BADBAUD);
+GLOBALVALUEREF(int, MTL__CLGARBAGE);
+GLOBALVALUEREF(int, MTL__BADOPT);
+GLOBALVALUEREF(int, MTL__NOCOMMS);
+GLOBALVALUEREF(int, MTL__TOOMANYRETRIES);
+GLOBALVALUEREF(int, MTL__OUTOFSTORE);
+GLOBALVALUEREF(int, MTL__CANTOPENOUT);
+GLOBALVALUEREF(int, MTL__CANTOPENIN);
+GLOBALVALUEREF(int, MTL__NOCONFIG);
+GLOBALVALUEREF(int, MTL__BADCONFIG);
+GLOBALVALUEREF(int, MTL__BADRAWFILE);
+GLOBALVALUEREF(int, MTL__NOTEVEN);
+GLOBALVALUEREF(int, MTL__BADOFFSET);
+GLOBALVALUEREF(int, MTL__BADHEX);
+GLOBALVALUEREF(int, MTL__FILECHANGED);
+GLOBALVALUEREF(int, MTL__GARBAGE);
+
+#else
+#define MTL__SUCCESS "Successful completion"
+#define MTL__ESTABLISHED "Established connection to the SCI"
+#define MTL__CLOSED "Closed connection to SCI"
+#define MTL__TIMEOUT "Timeout while awaiting SCI reply"
+#define MTL__BADCRC "CRC error on message from SCI"
+#define MTL__BADFRAME "Framing error on message from SCI"
+#define MTL__NOID "Reply from SCI with no message id"
+#define MTL__WRONGID "Reply from SCI with incorrect id"
+#define MTL__NOSTATUS "Reply from SCI with no status field"
+#define MTL__CREATEID "Created SCI ID file"
+#define MTL__NOIDFILE "No SCI message ID file"
+#define MTL__BADIDFILE "No SCI ID in file"
+#define MTL__CANTCREATEID "Cant create SCI ID file"
+#define MTL__TOOSHORT "Packet too short to contain any data: ignored"
+#define MTL__BADCONTROL "Unknown or unsupported controller type"
+#define MTL__BADNUMBER "Expected a number"
+#define MTL__OUTOFRANGE "Qualifier value out of range"
+#define MTL__TOOLONG "Qualifier string value too long"
+#define MTL__EXCLUSIVEOPT "Qualifier repeated or mutually exclusive options specified"
+#define MTL__MISSINGOPT "Not all required qualifiers specified"
+#define MTL__NOVALUE "Qualifier does not take a value"
+#define MTL__NEEDVALUE "Qualifier requires a value"
+#define MTL__PARAMTOOLONG "Parameter string too long"
+#define MTL__BADBAUD "Unsupported BAUD rate"
+#define MTL__CLGARBAGE "Extraneous stuff on command-line ignored"
+#define MTL__BADOPT "Unknown option specified - check documentation"
+#define MTL__NOCOMMS "Cannot establish communications with the SCI"
+#define MTL__TOOMANYRETRIES "Too many retries for SCI request"
+#define MTL__OUTOFSTORE "Out of memory"
+#define MTL__CANTOPENOUT "Cannot open output file"
+#define MTL__CANTOPENIN "Cannot open input file"
+#define MTL__NOCONFIG "Cannot open config file"
+#define MTL__BADCONFIG "Error in config file"
+#define MTL__BADRAWFILE "Error in raw data file"
+#define MTL__NOTEVEN "Hexstring of odd length"
+#define MTL__BADOFFSET "Offset indicates non-contiguous data"
+#define MTL__BADHEX "Received invalid hex digit in reply"
+#define MTL__FILECHANGED "File has changed during upload or download"
+#define MTL__GARBAGE "Unparsable reply from SCI"
+
+#endif
